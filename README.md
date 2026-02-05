@@ -353,10 +353,11 @@ Expected output:
 
    ```json
    {
-     "role": ["girlfriend"],
-     "nicknames": ["babe", "honey", "princess"],
-     "nature": ["introvert", "loves maths", "plays Roblox"],
-     "additional_info": ["likes chowmein", "hates spiders"]
+     "role": ["college friend"],
+     "nicknames": ["raj"],
+     "nature": ["extrovert", "loves maths", "plays Roblox", "sporty","gym freak"],
+     "additional_info": ["hates college", "crush dose'nt reply on time", "always bully others"],
+     "Tone":["Friendly", "Confident", "Use more emojis"]
    }
    ```
 
