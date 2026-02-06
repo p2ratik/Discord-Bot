@@ -22,3 +22,11 @@ CREATE TABLE IF NOT EXISTS role (
 -- INSERT INTO users (user_id, username) VALUES ('test_user_1', 'Test User 1');
 -- INSERT INTO role (user_id, user_name, role) VALUES 
 --   ('test_user_1', 'Test User 1', '{"relation": ["friend"], "nicknames": ["buddy"], "age": [25]}');
+--Admin Table Schema :
+CREATE TABLE IF NOT EXISTS admin(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255) UNIQUE NOT NULL,
+    role JSON,
+    INDEX idx_role_admin (user_id)
+)
+

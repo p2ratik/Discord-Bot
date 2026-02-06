@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, JSON
 from datetime import datetime
 from app.db.base import Base
 
@@ -12,3 +12,11 @@ class User(Base):
     username = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Admin():
+    """ORM model for admin table"""
+    __tablenname__ = "admin"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(255), index=True)
+    role = Column(JSON)

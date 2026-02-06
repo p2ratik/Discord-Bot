@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from app.schemas.chat import Payload
 from app.schemas.chat import BotMessageRecieve as bMp
+from app.schemas.chat import ChannelMessages
 from app.models.message import BotMessages
 from typing import Optional
 
@@ -31,5 +32,6 @@ async def add_user_messages(message: bMp, db:AsyncSession):
         await db.rollback()
         print(f"Error occured {e}")
 
-
-    
+async def get_all_messages(message : ChannelMessages, db:AsyncSession):
+    # Storing all messages
+    pass

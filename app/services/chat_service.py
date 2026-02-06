@@ -17,12 +17,13 @@ try:
 except Exception as e:
     print(f'API key not configured {e}')    
 
-def createMessage(payload:Payload):
+def createMessage(payload:Payload, reply:str):
     try:
         bm_obj = BotMessageRecieve(
             channel_id=str(payload.channel_id),
             user_id=str(payload.user_id),
-            content=str(payload.content)
+            content=str(payload.content),
+            bot_reply = reply
         )
         return bm_obj
     except Exception as e:
@@ -66,16 +67,13 @@ async def build_prompt(payload: Payload, db: AsyncSession) -> str:
     message = {payload.content}
     prev_messages = {prev_msg_format}
 """
-    # Pushing the current message
-    messages = createMessage(payload=payload)
-    await message_service.add_user_messages(message=messages, db=db)
     return prompt
 
 
 def _call_llm_sync(prompt: str) -> str:
     response = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=prompt
+        contents=prompt, 
     )
     return response.text
 
@@ -96,4 +94,8 @@ async def process_chat(payload: Payload, db: AsyncSession) -> dict:
     """
     prompt = await build_prompt(payload, db)
     llm_response = await call_llm(prompt)
+    # Adding the current data to the db
+    message = await createMessage(payload=payload, reply=llm_response)
+    await message_service.add_user_messages(message=message, db=db)
     return {'reply': llm_response}
+

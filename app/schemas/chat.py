@@ -28,8 +28,10 @@ class BotMessages(BaseModel):
     user_id: str
     content: str
     dateTime: datetime
+    bot_reply:str
 
 class BotMessageRecieve(BaseModel):
     user_id : str
     channel_id:Any
     content:str
+    bot_reply:str

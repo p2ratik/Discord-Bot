@@ -20,6 +20,7 @@ class BotMessages(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     channel_id = Column(String(32))
-    user_id = Column(String(50))
+    user_id = Column(String(50), index=True)
     content = Column(String(300))
     dateTime = Column(DateTime)
+    bot_reply = Column(String(500))
