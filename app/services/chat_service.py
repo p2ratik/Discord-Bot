@@ -3,6 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services import role_service
 from app.services import message_service
 from app.schemas.chat import BotMessageRecieve
+from app.services import admin_service
+from app.services import prompt
 import google.genai as genai
 from dotenv import load_dotenv
 import asyncio
@@ -17,7 +19,7 @@ try:
 except Exception as e:
     print(f'API key not configured {e}')    
 
-def createMessage(payload:Payload, reply:str):
+async def createMessage(payload:Payload, reply:str):
     try:
         bm_obj = BotMessageRecieve(
             channel_id=str(payload.channel_id),
@@ -42,32 +44,22 @@ async def build_prompt(payload: Payload, db: AsyncSession) -> str:
     """
     # Getting role for the user_id 
     role_obj = await role_service.get_roles_for_user(payload.user_id, db)
+
+    # Getting role for the admin
+
+    role_admin_obj = await admin_service.get_role_for_admin('pratik081978', db)
     
+    role_admin = role_admin_obj.role
+
     roles = role_obj.role if role_obj else {}
     
     # Getting the previous messages of the user if exist
     prev_messages = await message_service.get_user_messages(payload.user_id, db)
 
     #formatting the previous messages 
-    prev_msg_format = [{'user':m.user_id, 'content':m.content} for m in prev_messages]
+    prev_messages_format = [{'user_message':m.content , 'bot_reply':m.bot_reply} for m in prev_messages]
 
-    prompt = f"""You're an AI bot pretending to be me. Your task is to reply to text messages which you receive in a way I do. I will provide you with the roles and all the necessary information you will be expecting to communicate with a person I do. The roles I provide will be specific to that person you're communicating with. Don't generalize the roles. Let me tell you about myself which will help you to answer better. I will also provide you the previous messages for that particular person so that you will know which topics you were talking about earlier. If the previous messages are null dont worry you'll answer normally.
-
-    Name: Pratik
-    Age: 18
-    Nature: Funny, Introvert, Loves Technology, Plays Roblox, Favorite programming language: c++, Also working on a startup, Favourite color: black, confident 
-
-    Now this is an example of role you will be expecting user_id = 'hani' user_name = Suhani
-    {{"role":['friend'] "nicknames":['rocky', 'buddy', 'pal', 'dawg'] "nature":["introvert", "loves maths", "plays Roblox"]}}
-
-    Now based on the role you have to answer to that person. Try using nicknames more and answer in the language the user is communicating through. (Language: ENGLISH/BEN/ENGLISH/HIN/ENGLISH)
-
-    roles = {roles}
-    user_id = {payload.user_id}
-    message = {payload.content}
-    prev_messages = {prev_msg_format}
-"""
-    return prompt
+    return await prompt.develop_prompt(roles, payload.content , prev_messages_format, role_admin)
 
 
 def _call_llm_sync(prompt: str) -> str:

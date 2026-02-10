@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import attributes
 from fastapi import HTTPException
 from app.models.role import Role as RoleModel
 from app.schemas.role import RoleCreate, RolePatch
@@ -75,6 +76,9 @@ async def patch_role(user_id: str, role_patch: RolePatch, db: AsyncSession) -> O
         current_data = role.role or {}
         current_data.update(role_patch.role)
         role.role = current_data
+        
+        # Mark the JSON column as modified so SQLAlchemy detects the change
+        attributes.flag_modified(role, 'role')
         
         await db.commit()
         await db.refresh(role)

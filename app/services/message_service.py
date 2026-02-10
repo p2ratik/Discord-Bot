@@ -11,7 +11,7 @@ from typing import Optional
 async def get_user_messages(user_id : str, db:AsyncSession)->Optional[BotMessages]:
     # To get the top 10 messages if exist
     try:
-        results = await db.execute(select(BotMessages).where(BotMessages.user_id == user_id).order_by(desc(BotMessages.id)).limit(10))
+        results = await db.execute(select(BotMessages).where(BotMessages.user_id == user_id).order_by(desc(BotMessages.id)).limit(5))
         messages = results.scalars().all()
         return messages
     except Exception as e:
