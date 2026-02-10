@@ -223,7 +223,7 @@ Before you begin, ensure you have:
 #### Step 1: Clone the Repository
 
 ```bash
-cd G:\Projects\Discord
+git clone https://github.com/p2ratik/Discord-Bot
 ```
 
 #### Step 2: Configure Environment Variables
@@ -261,7 +261,7 @@ SHOW DATABASES;
 
 ```bash
 # Install Python packages
-pip install fastapi uvicorn sqlalchemy aiomysql pymysql python-dotenv discord.py aiohttp google-generativeai
+pip install -r requirements.txt
 ```
 
 #### Step 5: Initialize Database Tables
@@ -353,10 +353,11 @@ Expected output:
 
    ```json
    {
-     "role": ["girlfriend"],
-     "nicknames": ["babe", "honey", "princess"],
-     "nature": ["introvert", "loves maths", "plays Roblox"],
-     "additional_info": ["likes chowmein", "hates spiders"]
+     "role": ["college friend"],
+     "nicknames": ["raj"],
+     "nature": ["extrovert", "loves maths", "plays Roblox", "sporty","gym freak"],
+     "additional_info": ["hates college", "crush dose'nt reply on time", "always bully others"],
+     "Tone":["Friendly", "Confident", "Use more emojis"]
    }
    ```
 
