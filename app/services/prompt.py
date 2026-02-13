@@ -1,7 +1,14 @@
-import asyncio
 
-async def develop_prompt(user_roles, context, previous_conv, admin_role):
-
+def develop_prompt(user_roles, context, previous_conv, admin_role):
+    """
+    Build a prompt for the LLM based on user context and roles
+    
+    :param user_roles: User role information
+    :param context: Current message context
+    :param previous_conv: Previous conversation history
+    :param admin_role: Admin role information
+    :return: Formatted prompt string
+    """
     prompt = f"""
     You are an intelligent conversational assistant operating inside a Discord environment.
     Your responses must be context-aware, role-aware, and concise.

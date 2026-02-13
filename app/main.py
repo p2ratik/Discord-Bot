@@ -6,6 +6,9 @@ from app.api.users import router as users_router
 from app.api.admin_roles import router as admin_router
 from app.db.base import Base
 from app.db.session import engine
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 app = FastAPI(title="Discord Bot API")
 
@@ -28,12 +31,20 @@ app.include_router(admin_router)
 @app.get("/")
 def root():
     """Root endpoint"""
+    logger.info("Root endpoint accessed")
     return {"message": "Discord Bot API is running", "version": "1.0.0"}
 
 
 @app.on_event("startup")
 async def startup():
     """Create database tables on startup"""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Application starting up...")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables created/verified successfully")
+        logger.info("Discord Bot API is ready to accept requests")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}", exc_info=True)
+        raise
 

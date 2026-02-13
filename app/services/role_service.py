@@ -5,7 +5,10 @@ from sqlalchemy.orm import attributes
 from fastapi import HTTPException
 from app.models.role import Role as RoleModel
 from app.schemas.role import RoleCreate, RolePatch
+from app.utils.logger import get_logger
 from typing import Optional
+
+logger = get_logger(__name__)
 
 
 async def get_roles_for_user(user_id: str, db: AsyncSession) -> Optional[RoleModel]:
@@ -19,11 +22,18 @@ async def get_roles_for_user(user_id: str, db: AsyncSession) -> Optional[RoleMod
     :return: Role object or None
     """
     try:
+        logger.debug(f"Fetching roles for user: {user_id}")
         results = await db.execute(
             select(RoleModel).where(RoleModel.user_id == user_id)
         )
-        return results.scalar_one_or_none()
+        role = results.scalar_one_or_none()
+        if role:
+            logger.info(f"Found role for user {user_id}")
+        else:
+            logger.debug(f"No role found for user {user_id}")
+        return role
     except Exception as e:
+        logger.error(f"Error fetching roles for user {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error fetching roles: {str(e)}")
 
 
@@ -39,18 +49,22 @@ async def add_role(role: RoleCreate, db: AsyncSession) -> RoleModel:
     :raises HTTPException: If role already exists for user (409)
     """
     try:
+        logger.info(f"Adding new role for user: {role.user_id}")
         db_role = RoleModel(**role.model_dump())
         db.add(db_role)
         
         await db.commit()
         await db.refresh(db_role)
         
+        logger.info(f"Successfully added role for user {role.user_id}")
         return db_role
     except IntegrityError:
         await db.rollback()
+        logger.warning(f"Role already exists for user {role.user_id}")
         raise HTTPException(status_code=409, detail=f"Role already exists for user_id '{role.user_id}'")
     except Exception as e:
         await db.rollback()
+        logger.error(f"Error adding role for user {role.user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error adding role: {str(e)}")
 
 
@@ -67,9 +81,11 @@ async def patch_role(user_id: str, role_patch: RolePatch, db: AsyncSession) -> O
     :return: Updated role object or None if not found
     """
     try:
+        logger.info(f"Patching role for user: {user_id}")
         role = await get_roles_for_user(user_id, db)
         
         if not role:
+            logger.warning(f"Cannot patch role - user {user_id} not found")
             return None
         
         # Merge updates into existing role data (PATCH semantics)
@@ -83,9 +99,11 @@ async def patch_role(user_id: str, role_patch: RolePatch, db: AsyncSession) -> O
         await db.commit()
         await db.refresh(role)
         
+        logger.info(f"Successfully patched role for user {user_id}")
         return role
     except Exception as e:
         await db.rollback()
+        logger.error(f"Error patching role for user {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error updating role: {str(e)}")
 
 
@@ -100,6 +118,7 @@ async def remove_role(user_id: str, db: AsyncSession) -> bool:
     :return: True if successful, False if not found
     """
     try:
+        logger.info(f"Removing role for user: {user_id}")
         result = await db.execute(
             select(RoleModel).where(RoleModel.user_id == user_id)
         )
@@ -108,10 +127,13 @@ async def remove_role(user_id: str, db: AsyncSession) -> bool:
         if role:
             await db.delete(role)
             await db.commit()
+            logger.info(f"Successfully removed role for user {user_id}")
             return True
+        logger.debug(f"No role to remove for user {user_id}")
         return False
     except Exception as e:
         await db.rollback()
+        logger.error(f"Error removing role for user {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error removing role: {str(e)}")
 
 

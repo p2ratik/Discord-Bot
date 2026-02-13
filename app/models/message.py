@@ -10,7 +10,7 @@ class ChannelMessages(Base):
     server_id = Column(String(32))
     channel_id = Column(String(32))
     user_id = Column(String(50))
-    content = Column(String(300))
+    content = Column(String(1000))
     dateTime = Column(DateTime)
 
 
@@ -21,6 +21,6 @@ class BotMessages(Base):
     id = Column(Integer, primary_key=True, index=True)
     channel_id = Column(String(32))
     user_id = Column(String(50), index=True)
-    content = Column(String(300))
+    content = Column(String(1000))
     dateTime = Column(DateTime)
-    bot_reply = Column(String(500))
+    bot_reply = Column(String(1000))
