@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 token = os.getenv('SECRET_KEY')
+API_URL = os.getenv('API_URL', 'http://127.0.0.1:8000')
 
 
 class MyClient(discord.Client):
@@ -35,7 +36,7 @@ class MyClient(discord.Client):
         
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                "http://127.0.0.1:8000/chat",
+                f"{API_URL}/chat",
                 json=payload
             ) as resp:
                 data = await resp.json()
@@ -44,13 +45,13 @@ class MyClient(discord.Client):
         print(f'Message from {message.author}: {message.content}')
 
 
-def run_bot():
+async def run_bot():
     """Initialize and run the Discord bot"""
     intents = discord.Intents.default()
     intents.message_content = True
     
     client = MyClient(intents=intents)
-    client.run(token)
+    await client.start(token)
 
 
 if __name__ == "__main__":
