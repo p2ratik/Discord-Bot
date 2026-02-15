@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 from app.db.base import Base
 
 load_dotenv()
-password = os.getenv('MYSQL_KEY')
+password = os.getenv('POSTGRES_PASSWORD')
 
-db_url = f"mysql+aiomysql://root:{password}@localhost:3306/discord"
+db_url = os.getenv('DATABASE_URL')
 
 engine = create_async_engine(
     db_url,

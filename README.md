@@ -60,7 +60,7 @@ graph TB
     end
     
     subgraph "Database Layer"
-        I[(MySQL Database)]
+        I[(PostgreSQL Database)]
     end
     
     subgraph "Frontend - Next.js"
@@ -89,7 +89,7 @@ graph TB
 | **Discord Bot** | discord.py | Listens to messages and sends responses |
 | **Backend API** | FastAPI + SQLAlchemy | Handles business logic and data management |
 | **AI Engine** | Google Gemini 2.5 Flash | Generates personalized responses |
-| **Database** | MySQL | Stores users, roles, and message history |
+| **Database** | PostgreSQL | Stores users, roles, and message history |
 | **Frontend Portal** | Next.js 15 + React | Web interface for role management |
 
 ---
@@ -99,7 +99,7 @@ graph TB
 ### Backend
 - **Framework**: FastAPI (Python 3.11+)
 - **ORM**: SQLAlchemy (Async)
-- **Database Driver**: aiomysql
+- **Database Driver**: asyncpg
 - **AI SDK**: Google Generative AI (Gemini)
 - **Discord Library**: discord.py
 - **Environment Management**: python-dotenv
@@ -111,7 +111,7 @@ graph TB
 - **HTTP Client**: Fetch API
 
 ### Database
-- **DBMS**: MySQL 8.0+
+- **DBMS**: PostgreSQL 14+
 - **Tables**: `users`, `role`, `bot_messages`, `channel_messages`
 
 ### DevOps
@@ -129,7 +129,7 @@ sequenceDiagram
     participant U as Discord User
     participant B as Discord Bot
     participant API as FastAPI Backend
-    participant DB as MySQL Database
+    participant DB as PostgreSQL Database
     participant AI as Gemini AI
     
     U->>B: Sends message
@@ -153,7 +153,7 @@ sequenceDiagram
     participant Admin as Admin (Browser)
     participant Portal as Next.js Portal
     participant API as FastAPI Backend
-    participant DB as MySQL Database
+    participant DB as PostgreSQL Database
     
     Admin->>Portal: Open portal
     Portal->>API: GET /api/users
@@ -184,7 +184,7 @@ role
 ├── id (PK)
 ├── user_id (Unique, FK)
 ├── user_name
-└── role (JSON)
+└── role (JSONB)
 
 bot_messages
 ├── id (PK)
@@ -212,7 +212,7 @@ Before you begin, ensure you have:
 
 - ✅ **Python 3.11+** installed
 - ✅ **Node.js 18+** and npm installed
-- ✅ **MySQL 8.0+** running
+- ✅ **PostgreSQL 14+** running
 - ✅ **Discord Bot Token** ([Create ](https://discord.com/developers/applications))
 - ✅ **Google Gemini API Key** ([Get it here](https://aistudio.google.com/app/apikey))
 
@@ -226,13 +226,56 @@ Before you begin, ensure you have:
 git clone https://github.com/p2ratik/Discord-Bot
 ```
 
+---
+
+## Breaking Changes
+
+### Version X.Y.Z (2026-02-15)
+
+- **Environment Variable Renamed:**
+    - `MYSQL_KEY` has been **removed/renamed** to `POSTGRES_PASSWORD`.
+    - You must update your environment and deployment configuration to use `POSTGRES_PASSWORD` instead of `MYSQL_KEY`.
+
+- **Database Migration:**
+    - The backend now uses **PostgreSQL** instead of MySQL.
+    - You must migrate your data and configuration from MySQL to PostgreSQL.
+
+#### Migration Guide: MySQL → PostgreSQL
+
+1. **Backup your MySQL database:**
+    - Use `mysqldump` to export your data:
+      ```bash
+      mysqldump -u <user> -p <database> > backup.sql
+      ```
+2. **Set up PostgreSQL:**
+    - Install PostgreSQL and create a new database/user as needed.
+3. **Migrate data:**
+    - Use tools like [`pgloader`](https://pgloader.io/) or [`mysql2pgsql`](https://github.com/lanyrd/mysql-postgresql-converter) to import your MySQL dump into PostgreSQL:
+      ```bash
+      pgloader backup.sql postgresql://<user>:<password>@localhost/<database>
+      ```
+    - Review and fix any schema/data issues as needed.
+4. **Update environment variables:**
+    - In your `.env` or deployment config, set:
+      ```env
+      POSTGRES_PASSWORD=your_postgres_password
+      ```
+    - Remove any references to `MYSQL_KEY`.
+5. **Update deployment/config management:**
+    - Ensure your deployment scripts, CI/CD, and secrets managers are updated to set `POSTGRES_PASSWORD`.
+
+> **Note:**
+> If you need temporary backward compatibility, you can implement a fallback in your code to map `MYSQL_KEY` to `POSTGRES_PASSWORD` if the latter is unset. However, this is discouraged for long-term use.
+
+---
+
 #### Step 2: Configure Environment Variables
 
 Create a `.env` file in the root directory:
 
 ```env
 # Database Configuration
-MYSQL_KEY=your_mysql_password
+POSTGRES_PASSWORD=your_postgres_password
 
 # Discord Bot Token
 SECRET_KEY=your_discord_bot_token
@@ -244,17 +287,17 @@ LLM_API_KEY=your_gemini_api_key
 FRONTEND_URL=http://localhost:3000
 ```
 
-#### Step 3: Set Up MySQL Database
+#### Step 3: Set Up PostgreSQL Database
 
 ```sql
--- Connect to MySQL
-mysql -u root -p
+-- Connect to PostgreSQL
+psql -U postgres
 
 -- Create database
 CREATE DATABASE discord;
 
 -- Verify
-SHOW DATABASES;
+\l
 ```
 
 #### Step 4: Install Backend Dependencies
@@ -417,11 +460,11 @@ Expected output:
 
 #### Backend won't start
 
-**Problem**: `Access denied for user 'root'@'localhost'`
+**Problem**: `FATAL: password authentication failed for user "postgres"`
 
 **Solution**: 
-- Check your `.env` file has the correct `MYSQL_KEY`
-- Verify MySQL is running: `mysql -u root -p`
+- Check your `.env` file has the correct `POSTGRES_PASSWORD`
+- Verify PostgreSQL is running: `psql -U postgres`
 
 #### Discord bot not responding
 
@@ -520,7 +563,7 @@ If you encounter issues:
 1. Check [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md)
 2. Review the error logs in your terminal
 3. Verify all environment variables are set correctly
-4. Ensure all services (MySQL, Backend, Bot, Frontend) are running
+4. Ensure all services (PostgreSQL, Backend, Bot, Frontend) are running
 
 ---
 

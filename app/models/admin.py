@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
 from app.db.base import Base
 
@@ -8,4 +9,4 @@ class Admin(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(String(255), index=True)
-    role = Column(JSON)
+    role = Column(JSONB)

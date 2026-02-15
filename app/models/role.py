@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, JSON
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from app.db.base import Base
 
 
@@ -9,6 +10,5 @@ class Role(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String(50), unique=True)
     user_name = Column(String(32))
-    role = Column(JSON)
+    role = Column(JSONB)
 
-#JSON Format : {"role":['girlfriend'] "nicknames":['babe', 'honey', 'princess', 'bhondhu'] "nature":["introvert", "loves maths", "plays Roblox"] , "additional_info":["likes to eat chowmine", "hates spiders"]}
