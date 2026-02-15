@@ -5,9 +5,17 @@ from dotenv import load_dotenv
 from app.db.base import Base
 
 load_dotenv()
-password = os.getenv('POSTGRES_PASSWORD')
 
 db_url = os.getenv('DATABASE_URL')
+
+# Render/Heroku provide DATABASE_URL as "postgresql://..." or "postgres://..."
+# which defaults to the sync psycopg2 driver. SQLAlchemy's async engine
+# requires "postgresql+asyncpg://...", so we rewrite the scheme.
+if db_url:
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 engine = create_async_engine(
     db_url,

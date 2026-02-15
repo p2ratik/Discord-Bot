@@ -65,7 +65,6 @@ pydantic==2.12.5
 pydantic_core==2.41.5
 Pygments==2.19.2
 asyncpg==0.30.0
-psycopg2-binary==2.9.10
 PyPika==0.51.0
 pyproject_hooks==1.2.0
 pyreadline3==3.5.4
