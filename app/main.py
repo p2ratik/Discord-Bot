@@ -5,8 +5,10 @@ from app.api.roles import router as roles_router
 from app.api.users import router as users_router
 from app.api.admin_roles import router as admin_router
 from app.db.base import Base
+from app.discord_bot.bot import run_bot
 from app.db.session import engine
 from app.utils.logger import get_logger
+import asyncio
 
 logger = get_logger(__name__)
 
@@ -23,8 +25,8 @@ app.add_middleware(
 
 # Include routers
 app.include_router(chat_router)
-app.include_router(roles_router)
 app.include_router(users_router)
+app.include_router(roles_router)
 app.include_router(admin_router)
 
 
@@ -48,3 +50,6 @@ async def startup():
         logger.error(f"Failed to initialize database: {e}", exc_info=True)
         raise
 
+    # Launch the Discord bot as a background task so it doesn't block the server
+    asyncio.create_task(run_bot())
+    logger.info("Discord bot launched in background")
