@@ -9,8 +9,9 @@ import AddUserModal from '@/components/AddUserModal';
 import RoleEditor from '@/components/RoleEditor';
 import AdminList from '@/components/AdminList';
 import AdminRoleEditor from '@/components/AdminRoleEditor';
+import ChatUpload from '@/components/ChatUpload';
 
-type TabType = 'users' | 'admins';
+type TabType = 'users' | 'admins' | 'upload';
 
 interface AdminUser {
   user_id: string;
@@ -113,17 +114,26 @@ export default function Home() {
           <button
             onClick={() => setActiveTab('users')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === 'users'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/50'
-                : 'bg-white/10 text-slate-300 hover:bg-white/20'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/50'
+              : 'bg-white/10 text-slate-300 hover:bg-white/20'
               }`}
           >
             👥 User Management
           </button>
           <button
+            onClick={() => setActiveTab('upload')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === 'upload'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/50'
+              : 'bg-white/10 text-slate-300 hover:bg-white/20'
+              }`}
+          >
+            📁 Chat Upload
+          </button>
+          <button
             onClick={() => setActiveTab('admins')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === 'admins'
-                ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg shadow-orange-500/50'
-                : 'bg-white/10 text-slate-300 hover:bg-white/20'
+              ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg shadow-orange-500/50'
+              : 'bg-white/10 text-slate-300 hover:bg-white/20'
               }`}
           >
             👑 Admin Management
@@ -218,6 +228,21 @@ export default function Home() {
                 adminUser={selectedAdmin}
                 onUpdate={handleAdminUpdate}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Chat Upload Section */}
+        {activeTab === 'upload' && (
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/20">
+              <h2 className="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                <span>📁</span> Upload WhatsApp Chat
+              </h2>
+              <p className="text-slate-400 text-sm mb-6">
+                Upload a WhatsApp chat export (.txt) to store it in the cloud for analysis.
+              </p>
+              <ChatUpload />
             </div>
           </div>
         )}

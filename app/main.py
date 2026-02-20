@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.chat import router as chat_router
 from app.api.roles import router as roles_router
 from app.api.users import router as users_router
+from app.api.chat_upload import router as upload_router
 from app.api.admin_roles import router as admin_router
 from app.db.base import Base
 from app.discord_bot.bot import run_bot
@@ -28,6 +29,7 @@ app.include_router(chat_router)
 app.include_router(users_router)
 app.include_router(roles_router)
 app.include_router(admin_router)
+app.include_router(upload_router)
 
 
 @app.get("/")

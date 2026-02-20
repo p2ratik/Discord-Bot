@@ -98,6 +98,8 @@ datasets/*.csv
 datasets/*.json
 datasets/*.parquet
 
+/datasets
+
 # Error logs
 error.txt
 errors/
