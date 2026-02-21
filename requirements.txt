@@ -21,8 +21,10 @@ discord.py==2.6.4
 google-genai==1.63.0
 
 # ── Embeddings (SentenceTransformers) ──
-sentence-transformers>=3.0.0
+# CPU-only torch — no NVIDIA/CUDA libs (~200 MB instead of ~3.5 GB)
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch>=2.0.0
+sentence-transformers>=3.0.0
 numpy==2.4.2
 
 # ── AWS S3 ──
