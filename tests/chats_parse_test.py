@@ -12,8 +12,8 @@ from app.schemas.whatsapp_info import Reciever
 TEXT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "datasets", "text.txt"))
 
 reciever = Reciever(
-    sender_name="Sagar",
-    reciever_name="Pratik",
+    sender_name="Pratik",
+    reciever_name="Sagar",
     sender_id="sg",
     reciever_id="pc",
 )
