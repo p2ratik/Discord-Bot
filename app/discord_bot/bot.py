@@ -1,12 +1,16 @@
 import discord
 import aiohttp
+import asyncio
 import os
 from dotenv import load_dotenv
+from app.utils.logger import get_logger
 
 load_dotenv()
 
 token = os.getenv('SECRET_KEY')
 API_URL = os.getenv('API_URL', 'http://127.0.0.1:8000')
+
+logger = get_logger(__name__)
 
 
 class MyClient(discord.Client):
@@ -14,35 +18,57 @@ class MyClient(discord.Client):
     
     async def on_ready(self):
         """Called when the bot is ready"""
-        print(f'Logged on as {self.user}!')
+        logger.info(f'Logged on as {self.user}!')
 
     async def on_message(self, message):
         """
-        Handle incoming messages
-        
-        :param message: Discord message object
+        Handle incoming messages — reply when the bot is mentioned.
         """
         if message.author.bot:
             return
             
-        print(message.author)
-        
+        if self.user not in message.mentions:
+            #Reply only when its tagged
+            return
+
+        if message.guild is None:
+            await message.channel.send("I only work in servers, not DMs!")
+            return
+
+        # Strip the mention from the message content
+        content = (
+            message.content
+            .replace(f"<@{self.user.id}>", "")
+            .replace(f"<@!{self.user.id}>", "")
+            .strip()
+        )
+
         payload = {
             "user_id": str(message.author),
-            "server_id":str(message.guild.id),
+            "server_id": str(message.guild.id),
             "channel_id": str(message.channel.id),
-            "content": message.content
+            "content": content,
         }
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{API_URL}/chat",
-                json=payload
-            ) as resp:
-                data = await resp.json()
 
-        await message.channel.send(data['reply'])
-        print(f'Message from {message.author}: {message.content}')
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{API_URL}/chat",
+                    json=payload,
+                ) as resp:
+                    if resp.status != 200:
+                        logger.error(f"API returned {resp.status}: {await resp.text()}")
+                        await message.channel.send("⚠️ Something went wrong, please try again.")
+                        return
+
+                    data = await resp.json()
+
+            reply = data.get("reply", "I didn't get a response.")
+            await message.channel.send(reply)
+
+        except Exception as e:
+            logger.error(f"Error processing message: {e}", exc_info=True)
+            await message.channel.send("⚠️ I'm having trouble right now, please try again later.")
 
 
 async def run_bot():
@@ -55,4 +81,4 @@ async def run_bot():
 
 
 if __name__ == "__main__":
-    run_bot()
+    asyncio.run(run_bot())

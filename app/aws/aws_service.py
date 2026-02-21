@@ -24,3 +24,6 @@ async def upload_file_to_s3(file, s3_key: str):
     await asyncio.to_thread(s3.upload_fileobj, file, BUCKET, s3_key)
     return s3_key
 
+async def download_file_from_s3(key, file_path):
+    """Downloads file to the temp folder from s3"""
+    await asyncio.to_thread(s3.download_file, BUCKET, key, file_path)

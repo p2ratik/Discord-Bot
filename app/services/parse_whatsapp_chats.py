@@ -85,7 +85,6 @@ async def parse_whatsapp_chat(file_path: str, reciever: Reciever) -> dict:
     """
     logger.info(f"Parsing WhatsApp chat from {file_path}")
 
-    # Run blocking file I/O in a thread so we don't block the event loop
     messages = await asyncio.to_thread(_parse_file, file_path)
     logger.info(f"Parsed {len(messages)} raw messages")
 

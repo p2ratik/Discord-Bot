@@ -51,3 +51,12 @@ CREATE TRIGGER trigger_update_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Vector chats
+CREATE TABLE chat_vectors (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT,
+    incoming TEXT,
+    reply TEXT,
+    embedding vector(384)
+);

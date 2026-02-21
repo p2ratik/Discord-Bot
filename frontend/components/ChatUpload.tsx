@@ -2,16 +2,26 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { chatUploadApi } from '@/lib/api';
+import type { RecieverInfo } from '@/lib/api';
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 interface UploadResult {
     message: string;
     s3_key: string;
+    job_id: string;
 }
+
+const EMPTY_RECIEVER: RecieverInfo = {
+    sender_name: '',
+    reciever_name: '',
+    sender_id: '',
+    reciever_id: '',
+};
 
 export default function ChatUpload() {
     const [file, setFile] = useState<File | null>(null);
+    const [reciever, setReciever] = useState<RecieverInfo>(EMPTY_RECIEVER);
     const [status, setStatus] = useState<UploadStatus>('idle');
     const [progress, setProgress] = useState(0);
     const [result, setResult] = useState<UploadResult | null>(null);
@@ -26,6 +36,12 @@ export default function ChatUpload() {
         if (f.size > MAX_SIZE_MB * 1024 * 1024) return `File must be under ${MAX_SIZE_MB} MB.`;
         return null;
     };
+
+    const isRecieverValid =
+        reciever.sender_name.trim() !== '' &&
+        reciever.reciever_name.trim() !== '' &&
+        reciever.sender_id.trim() !== '' &&
+        reciever.reciever_id.trim() !== '';
 
     const selectFile = (f: File) => {
         const err = validateFile(f);
@@ -59,13 +75,17 @@ export default function ChatUpload() {
         if (selected) selectFile(selected);
     };
 
+    const handleFieldChange = (field: keyof RecieverInfo) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        setReciever((prev) => ({ ...prev, [field]: e.target.value }));
+    };
+
     const handleUpload = async () => {
-        if (!file) return;
+        if (!file || !isRecieverValid) return;
         setStatus('uploading');
         setProgress(0);
         setErrorMsg('');
         try {
-            const res = await chatUploadApi.upload(file, setProgress);
+            const res = await chatUploadApi.upload(file, reciever, setProgress);
             setResult(res.data);
             setStatus('success');
         } catch (err: any) {
@@ -77,12 +97,20 @@ export default function ChatUpload() {
 
     const reset = () => {
         setFile(null);
+        setReciever(EMPTY_RECIEVER);
         setStatus('idle');
         setProgress(0);
         setResult(null);
         setErrorMsg('');
         if (inputRef.current) inputRef.current.value = '';
     };
+
+    const fieldConfig: { key: keyof RecieverInfo; label: string; placeholder: string; icon: string }[] = [
+        { key: 'sender_name', label: 'Sender Name', placeholder: 'e.g. Pratik', icon: '👤' },
+        { key: 'sender_id', label: 'Sender ID', placeholder: 'e.g. pc', icon: '🆔' },
+        { key: 'reciever_name', label: 'Reciever Name', placeholder: 'e.g. Sagar', icon: '👥' },
+        { key: 'reciever_id', label: 'Reciever ID', placeholder: 'e.g. sg', icon: '🆔' },
+    ];
 
     return (
         <div className="max-w-xl mx-auto">
@@ -93,8 +121,8 @@ export default function ChatUpload() {
                 onDragLeave={handleDragLeave}
                 onClick={() => inputRef.current?.click()}
                 className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-300 ${isDragging
-                        ? 'border-purple-400 bg-purple-500/20 scale-[1.02]'
-                        : 'border-white/20 bg-white/5 hover:border-purple-400/50 hover:bg-white/10'
+                    ? 'border-purple-400 bg-purple-500/20 scale-[1.02]'
+                    : 'border-white/20 bg-white/5 hover:border-purple-400/50 hover:bg-white/10'
                     }`}
             >
                 <input
@@ -141,6 +169,37 @@ export default function ChatUpload() {
                 </div>
             )}
 
+            {/* Reciever info form */}
+            {file && status !== 'success' && (
+                <div className="mt-5 p-5 rounded-2xl bg-white/5 border border-white/10">
+                    <h3 className="text-white font-semibold text-base mb-4 flex items-center gap-2">
+                        <span className="text-lg">🔗</span>
+                        Chat Participants
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                        {fieldConfig.map(({ key, label, placeholder, icon }) => (
+                            <div key={key}>
+                                <label className="block text-xs text-slate-400 mb-1.5 font-medium">
+                                    {icon} {label}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={reciever[key]}
+                                    onChange={handleFieldChange(key)}
+                                    placeholder={placeholder}
+                                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-slate-500 outline-none focus:border-purple-400/60 focus:bg-white/10 transition-all duration-200"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    {!isRecieverValid && (
+                        <p className="text-xs text-slate-500 mt-3">
+                            Fill in all four fields to enable upload.
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Progress bar */}
             {status === 'uploading' && (
                 <div className="mt-4">
@@ -158,9 +217,9 @@ export default function ChatUpload() {
             {file && status !== 'success' && (
                 <button
                     onClick={handleUpload}
-                    disabled={status === 'uploading'}
-                    className={`mt-4 w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${status === 'uploading'
-                            ? 'bg-purple-600/50 cursor-not-allowed'
+                    disabled={status === 'uploading' || !isRecieverValid}
+                    className={`mt-4 w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${status === 'uploading' || !isRecieverValid
+                            ? 'bg-purple-600/30 cursor-not-allowed'
                             : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50'
                         }`}
                 >
@@ -175,8 +234,13 @@ export default function ChatUpload() {
                         <span className="text-2xl">✅</span>
                         <p className="text-emerald-300 font-semibold text-lg">{result.message}</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-black/30 font-mono text-xs text-slate-300 break-all">
-                        <span className="text-slate-500">S3 Key: </span>{result.s3_key}
+                    <div className="space-y-2">
+                        <div className="p-3 rounded-lg bg-black/30 font-mono text-xs text-slate-300 break-all">
+                            <span className="text-slate-500">S3 Key: </span>{result.s3_key}
+                        </div>
+                        <div className="p-3 rounded-lg bg-black/30 font-mono text-xs text-slate-300 break-all">
+                            <span className="text-slate-500">Job ID: </span>{result.job_id}
+                        </div>
                     </div>
                     <button
                         onClick={reset}
