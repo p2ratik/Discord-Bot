@@ -14,14 +14,18 @@ from dotenv import load_dotenv
 # Load env vars before any app imports so DB / AWS / Redis creds are available.
 load_dotenv()
 
-from rq import SimpleWorker
+from rq import Worker
 from app.redis.redis_conn import redis_conn
 from app.redis.queue import task_queue
 
+# Pre-import heavy libraries so forked child processes inherit them
+# via copy-on-write, avoiding re-load per job.
+import sentence_transformers  # noqa: F401
+
 
 def run_worker():
-    """Start the RQ worker process (SimpleWorker — no fork)."""
-    worker = SimpleWorker(
+    """Start the RQ worker process (fork-based)."""
+    worker = Worker(
         queues=[task_queue],
         connection=redis_conn,
         name=f"pipeline-worker-{os.getpid()}",
@@ -31,3 +35,4 @@ def run_worker():
 
 if __name__ == "__main__":
     run_worker()
+

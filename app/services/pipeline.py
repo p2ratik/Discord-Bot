@@ -14,16 +14,16 @@ from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# Lazy-loaded: only initialized when the worker processes its first job.
-# This prevents the ~90MB model from loading when the API server imports this module.
+# Singleton embedder — initialized on first call, reused across jobs.
+# Import is at call time to avoid loading torch when the API server imports this module.
 _embedder = None
 
 
 def _get_embedder():
     global _embedder
     if _embedder is None:
-        from app.services.embeddings import EmbeddingManager
         logger.info("Loading SentenceTransformer model (first job)...")
+        from app.services.embeddings import EmbeddingManager
         _embedder = EmbeddingManager()
     return _embedder
 
