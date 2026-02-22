@@ -9,23 +9,11 @@ from app.aws.aws_service import download_file_from_s3, upload_file_to_s3
 from app.services.parse_whatsapp_chats import parse_whatsapp_chat
 from app.schemas.whatsapp_info import Reciever
 from app.services.vector_store import insert_vectors
+from app.services.embeddings import embed_pairs
 from app.db.session import AsyncSessionLocal
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
-
-# Singleton embedder — initialized on first call, reused across jobs.
-# Import is at call time to avoid loading torch when the API server imports this module.
-_embedder = None
-
-
-def _get_embedder():
-    global _embedder
-    if _embedder is None:
-        logger.info("Loading SentenceTransformer model (first job)...")
-        from app.services.embeddings import EmbeddingManager
-        _embedder = EmbeddingManager()
-    return _embedder
 
 
 async def process_chat_pipeline(job_id: str, s3_key: str, reciever_data: dict):
@@ -60,7 +48,7 @@ async def process_chat_pipeline(job_id: str, s3_key: str, reciever_data: dict):
 
         # 3. Generate embeddings (uses module-level model — no reload)
         logger.info(f"[{job_id}] Generating embeddings for {parsed['total_pairs']} pairs")
-        embedded = await _get_embedder().embed_pairs(parsed)
+        embedded = await embed_pairs(parsed)
 
         # 4. Insert vectors into Postgres (own session — no FastAPI Depends)
         logger.info(f"[{job_id}] Inserting vectors into database")

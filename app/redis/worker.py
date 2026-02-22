@@ -18,10 +18,6 @@ from rq import Worker
 from app.redis.redis_conn import redis_conn
 from app.redis.queue import task_queue
 
-# Pre-import heavy libraries so forked child processes inherit them
-# via copy-on-write, avoiding re-load per job.
-import sentence_transformers  # noqa: F401
-
 
 def run_worker():
     """Start the RQ worker process (fork-based)."""
