@@ -39,4 +39,5 @@ async def embed_pairs(parsed):
         return parsed    
     except Exception as e:
         logger.error(f"Error while generating embeddings {e}")
+        raise
 

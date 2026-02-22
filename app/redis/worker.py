@@ -9,6 +9,7 @@ jobs dispatched by the API.
 """
 
 import os
+import uuid
 from dotenv import load_dotenv
 
 # Load env vars before any app imports so DB / AWS / Redis creds are available.
@@ -24,7 +25,7 @@ def run_worker():
     worker = Worker(
         queues=[task_queue],
         connection=redis_conn,
-        name=f"pipeline-worker-{os.getpid()}",
+        name=f"pipeline-worker-{uuid.uuid4().hex[:8]}", #unique id to every workler. Was creating problem
     )
     worker.work(with_scheduler=False)
 
