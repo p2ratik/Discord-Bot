@@ -26,7 +26,7 @@ async def embed_pairs(parsed):
  
         result = await asyncio.wait_for(
             client.aio.models.embed_content(
-                model="text-embedding-004",
+                model="text-embedding-001",
                 contents=texts,
                 config={"output_dimensionality": 384,
                         "task_type": "RETRIEVAL_DOCUMENT"}
