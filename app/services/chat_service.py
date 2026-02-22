@@ -60,11 +60,9 @@ async def build_prompt(payload: Payload, db: AsyncSession) -> str:
     admin_username = os.getenv('ADMIN_USERNAME', 'pratik081978')
     
     try:
-        role_obj, role_admin_obj, prev_messages = await asyncio.gather(
-            role_service.get_roles_for_user(payload.user_id, db),
-            admin_service.get_role_for_admin(admin_username, db),
-            message_service.get_user_messages(payload.user_id, db)
-        )
+        role_obj = await role_service.get_roles_for_user(payload.user_id, db)
+        role_admin_obj = await admin_service.get_role_for_admin(admin_username, db)
+        prev_messages = await message_service.get_user_messages(payload.user_id, db)
         
         db_time = (time.time() - start_time) * 1000
         logger.debug(f"Database queries completed in {db_time:.2f}ms")

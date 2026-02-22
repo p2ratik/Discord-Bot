@@ -14,27 +14,28 @@ except Exception as e:
     logger.error(f'Failed to initialize LLM client: {e}')
     raise    
 
+# Unlike LLM calls there wont be any streaming here. 
 async def embed_pairs(parsed):
     """
-    Native async call with streaming for lower perceived latency.
+    Embed pairs with gemini-004 model with asyncio
     """
     logger.info(f"Started Embeddings Creation")
 
     texts = [pair['incoming'] for pair in parsed['pairs']]
     try:
-        # 1. Use client.aio for native async support
-        # 2. Use generate_content_stream (no stream=True argument needed)
+ 
         result = await asyncio.wait_for(
             client.aio.models.embed_content(
                 model="text-embedding-004",
                 contents=texts,
-                config={"output_dimensionality": 384}
+                config={"output_dimensionality": 384,
+                        "task_type": "RETRIEVAL_DOCUMENT"}
             ),
             timeout=120,
         )
 
         for pair, emb in zip(parsed['pairs'], result.embeddings):
-            pair['embedding'] = list(emb.values)
+            pair['embedding'] = emb.values
 
         return parsed    
     except Exception as e:
