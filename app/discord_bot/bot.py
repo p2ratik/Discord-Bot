@@ -16,6 +16,10 @@ logger = get_logger(__name__)
 class MyClient(discord.Client):
     """Discord bot client"""
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._seen_messages = set()
+    
     async def on_ready(self):
         """Called when the bot is ready"""
         logger.info(f'Logged on as {self.user}!')
@@ -24,6 +28,8 @@ class MyClient(discord.Client):
         """
         Handle incoming messages — reply when the bot is mentioned.
         """
+        logger.debug(f"Message received from {message.author}: {message.content[:50]}")
+        
         if message.author.bot:
             return
             

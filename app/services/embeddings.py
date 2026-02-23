@@ -22,6 +22,7 @@ async def embed_pairs(parsed):
     logger.info(f"Started Embeddings Creation")
 
     texts = [pair['incoming'] for pair in parsed['pairs']]
+    batch_texts = []
     try:
  
         result = await asyncio.wait_for(
