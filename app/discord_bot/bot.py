@@ -16,9 +16,6 @@ logger = get_logger(__name__)
 class MyClient(discord.Client):
     """Discord bot client"""
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._seen_messages = set()
     
     async def on_ready(self):
         """Called when the bot is ready"""
@@ -41,14 +38,6 @@ class MyClient(discord.Client):
             await message.channel.send("I only work in servers, not DMs!")
             return
         
-        # Deduplicate — ignore if we already processed this message
-        if message.id in self._seen_messages:
-            return
-        self._seen_messages.add(message.id)
-        # Cap the set size to prevent unbounded growth
-        if len(self._seen_messages) > 1000:
-            self._seen_messages.clear()           
-
         # Strip the mention from the message content
         content = (
             message.content
