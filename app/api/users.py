@@ -11,11 +11,11 @@ from app.services.user_service import (
 )
 from app.db.session import get_db
 from typing import List
-
+from app.auth.verify import verify_api_key
 router = APIRouter(prefix="/api/users", tags=["users"])
 
 
-@router.get("", response_model=List[UserResponse])
+@router.get("", response_model=List[UserResponse], dependencies=[Depends(verify_api_key)])
 async def list_users(db: AsyncSession = Depends(get_db)):
     """
     Get all users
@@ -28,7 +28,7 @@ async def list_users(db: AsyncSession = Depends(get_db)):
     return users
 
 
-@router.get("/{user_id}", response_model=UserWithRoles)
+@router.get("/{user_id}", response_model=UserWithRoles, dependencies=[Depends(verify_api_key)])
 async def get_user_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
     """
     Get a specific user with their role data
@@ -46,7 +46,7 @@ async def get_user_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
     return user
 
 
-@router.post("", response_model=UserResponse, status_code=201)
+@router.post("", response_model=UserResponse, status_code=201, dependencies=[Depends(verify_api_key)])
 async def create_user_endpoint(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """
     Create a new user
@@ -62,7 +62,7 @@ async def create_user_endpoint(user_data: UserCreate, db: AsyncSession = Depends
     return user
 
 
-@router.put("/{user_id}", response_model=UserResponse)
+@router.put("/{user_id}", response_model=UserResponse, dependencies=[Depends(verify_api_key)])
 async def update_user_endpoint(
     user_id: str,
     user_data: UserUpdate,
@@ -86,7 +86,7 @@ async def update_user_endpoint(
     return user
 
 
-@router.delete("/{user_id}", status_code=204)
+@router.delete("/{user_id}", status_code=204, dependencies=[Depends(verify_api_key)])
 async def delete_user_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
     """
     Delete a user

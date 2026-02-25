@@ -1,7 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from app.schemas.upload import UploadResponse
 from app.utils.logger import get_logger
 from app.redis.queue import task_queue
+from app.auth.verify import verify_api_key
 from app.services.pipeline import run_pipeline_sync
 from app.aws.aws_service import upload_file_to_s3
 from rq import Retry
@@ -11,8 +12,8 @@ logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api", tags=["chats"])
 
-
-@router.post("/upload-chat", response_model=UploadResponse, status_code=201)
+# Have to send a key as a header from the frontend to authenticate user
+@router.post("/upload-chat", response_model=UploadResponse, status_code=201, dependencies=[Depends(verify_api_key)])
 async def upload_chat(
     file: UploadFile = File(...),
     sender_name: str = Form(...),

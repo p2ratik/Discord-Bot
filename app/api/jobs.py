@@ -1,14 +1,14 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from rq.job import Job
 from app.redis.redis_conn import redis_conn
 from app.utils.logger import get_logger
-
+from app.auth.verify import verify_api_key
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api", tags=["jobs"])
 
 
-@router.get("/jobs/{job_id}")
+@router.get("/jobs/{job_id}", dependencies=[Depends(verify_api_key)])
 async def get_job_status(job_id: str):
     """
     Poll the status of a queued pipeline job.
