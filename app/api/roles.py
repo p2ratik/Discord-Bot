@@ -3,11 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.role import Role, RoleCreate, RolePatch
 from app.services.role_service import get_roles_for_user, add_role, remove_role, patch_role
 from app.db.session import get_db
+from app.auth.verify import verify_api_key
 
 router = APIRouter(prefix="/api", tags=["roles"])
 
 
-@router.post('/role', response_model=Role, status_code=201)
+@router.post('/role', response_model=Role, status_code=201, dependencies=[Depends(verify_api_key)])
 async def add_role_endpoint(role: RoleCreate, db: AsyncSession = Depends(get_db)):
     """
     Add a new role for a user
@@ -22,7 +23,7 @@ async def add_role_endpoint(role: RoleCreate, db: AsyncSession = Depends(get_db)
     return await add_role(role, db)
 
 
-@router.get('/role/{user_id}', response_model=Role)
+@router.get('/role/{user_id}', response_model=Role, dependencies=[Depends(verify_api_key)])
 async def get_roles_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
     """
     Get roles for a specific user
@@ -40,7 +41,7 @@ async def get_roles_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
     return role
 
 
-@router.patch('/role/{user_id}', response_model=Role)
+@router.patch('/role/{user_id}', response_model=Role, dependencies=[Depends(verify_api_key)])
 async def patch_role_endpoint(
     user_id: str,
     role_patch: RolePatch,
@@ -64,7 +65,7 @@ async def patch_role_endpoint(
     return role
 
 
-@router.delete('/role/{user_id}', status_code=204)
+@router.delete('/role/{user_id}', status_code=204, dependencies=[Depends(verify_api_key)])
 async def remove_role_endpoint(user_id: str, db: AsyncSession = Depends(get_db)):
     """
     Remove a role for a user
