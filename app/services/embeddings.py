@@ -15,27 +15,53 @@ except Exception as e:
     raise    
 
 # Unlike LLM calls there wont be any streaming here. 
+
+async def embed(texts):
+
+    try:   
+        result = await asyncio.wait_for(
+                client.aio.models.embed_content(
+                    model="gemini-embedding-001",
+                    contents=texts,
+                    config={"output_dimensionality": 384,
+                            "task_type": "RETRIEVAL_DOCUMENT"}
+                ),
+                timeout=120,
+            )    
+        return result
+    except Exception as e:
+        logger.info("Error while generating embeddings")
+        raise
+        
+
 async def embed_pairs(parsed):
     """
-    Embed pairs with gemini-004 model with asyncio
+    Embed pairs with gemini-001 model with asyncio
     """
     logger.info(f"Started Embeddings Creation")
-
-    texts = [pair['incoming'] for pair in parsed['pairs']]
     batch_texts = []
-    try:
- 
-        result = await asyncio.wait_for(
-            client.aio.models.embed_content(
-                model="gemini-embedding-001",
-                contents=texts,
-                config={"output_dimensionality": 384,
-                        "task_type": "RETRIEVAL_DOCUMENT"}
-            ),
-            timeout=120,
-        )
+    temp = []
+    c = 0
+    for pair in parsed['pairs']:
+        temp.append(pair['incoming'])
+        if c<=95:
+            c+=1
+        else:
+            c = 0
+            batch_texts.append(temp)
+            temp = []
 
-        for pair, emb in zip(parsed['pairs'], result.embeddings):
+    if temp:
+        batch_texts.append(temp)
+    embeddings = []
+    try:
+        for text in batch_texts:
+            result = await embed(text)
+            embeddings.append(result.embeddings)
+
+        all_embeddings = [embed for sub_embed in embeddings for embed in sub_embed]
+
+        for pair, emb in zip(parsed['pairs'], all_embeddings):
             pair['embedding'] = emb.values
 
         return parsed    

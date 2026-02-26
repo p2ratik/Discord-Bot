@@ -18,3 +18,4 @@ class Reciever(BaseModel):
     reciever_name:str
     sender_id:str
     reciever_id:str
+

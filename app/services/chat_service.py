@@ -5,6 +5,8 @@ from app.services import message_service
 from app.schemas.chat import BotMessageRecieve
 from app.services import admin_service
 from app.services import prompt
+from app.services.vector_store import retrive_vectors
+from app.services.embeddings import embed
 from app.utils.logger import get_logger
 import google.genai as genai
 from dotenv import load_dotenv
@@ -63,7 +65,10 @@ async def build_prompt(payload: Payload, db: AsyncSession) -> str:
         role_obj = await role_service.get_roles_for_user(payload.user_id, db)
         role_admin_obj = await admin_service.get_role_for_admin(admin_username, db)
         prev_messages = await message_service.get_user_messages(payload.user_id, db)
-        
+        query_embed = await embed(payload.content)
+        wp_messages = await retrive_vectors(query_embed[0], 5, db)
+
+
         db_time = (time.time() - start_time) * 1000
         logger.debug(f"Database queries completed in {db_time:.2f}ms")
         
@@ -75,7 +80,10 @@ async def build_prompt(payload: Payload, db: AsyncSession) -> str:
         # Format the previous messages
         prev_messages_format = [{'user_message': m.content, 'bot_reply': m.bot_reply} for m in prev_messages]
 
-        prompt_text = prompt.develop_prompt(roles, payload.content, prev_messages_format, role_admin)
+        # Format wp messages 
+        wp_messages_format = [{'incoming_message': m.incoming, 'replied_messages':m.reply} for m in wp_messages]
+        
+        prompt_text = prompt.develop_prompt(roles, payload.content, prev_messages_format, role_admin, wp_messages_format)
         logger.debug(f"Prompt built successfully (length: {len(prompt_text)} chars)")
         return prompt_text
     except Exception as e:
@@ -93,7 +101,6 @@ async def call_llm(prompt: str, timeout: int = 30) -> str:
 
     try:
         # 1. Use client.aio for native async support
-        # 2. Use generate_content_stream (no stream=True argument needed)
         response_stream = await asyncio.wait_for(
             client.aio.models.generate_content_stream(
                 model="gemini-2.5-flash",
@@ -106,8 +113,6 @@ async def call_llm(prompt: str, timeout: int = 30) -> str:
         async for chunk in response_stream:
             if chunk.text:
                 full_response.append(chunk.text)
-                # OPTIONAL: Here is where you would update your Discord message!
-                # await discord_message.edit(content="".join(full_response))
 
         elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
         result = "".join(full_response)

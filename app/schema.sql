@@ -53,6 +53,11 @@ CREATE TRIGGER trigger_update_users_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Vector chats
+CREATE INDEX chat_vectors_embedding_idx
+ON chat_vectors
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
 CREATE TABLE chat_vectors (
     id SERIAL PRIMARY KEY,
     user_id TEXT,

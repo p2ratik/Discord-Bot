@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from app.services.parse_whatsapp_chats import parse_whatsapp_chat
 from app.schemas.whatsapp_info import Reciever
-from app.services.embeddings import EmbeddingManager
+from app.services.embeddings import embed_pairs
 from app.services.vector_store import insert_vectors
 from app.db.session import AsyncSessionLocal
 
@@ -55,8 +55,8 @@ async def run_pipeline():
 
     # 3. Generate embeddings
     print("🧠 Generating embeddings …")
-    embedder = EmbeddingManager()
-    embedded_pairs = await embedder.embed_pairs(parsed)
+  
+    embedded_pairs = await embed_pairs(parsed)
     #print(f"   → Embedded {len(embedded_pairs)} pairs\n")
     #print(embedded_pairs)
 
