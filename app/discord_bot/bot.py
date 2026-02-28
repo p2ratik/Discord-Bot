@@ -9,7 +9,7 @@ load_dotenv()
 
 token = os.getenv('SECRET_KEY')
 API_URL = os.getenv('API_URL', 'http://127.0.0.1:8000')
-
+INTERNAL_API_KEY = os.getenv('INTERNAL_API_KEY')
 logger = get_logger(__name__)
 
 
@@ -58,6 +58,7 @@ class MyClient(discord.Client):
                 async with session.post(
                     f"{API_URL}/chat",
                     json=payload,
+                    headers=INTERNAL_API_KEY
                 ) as resp:
                     if resp.status != 200:
                         logger.error(f"API returned {resp.status}: {await resp.text()}")
