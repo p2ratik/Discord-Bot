@@ -58,7 +58,7 @@ class MyClient(discord.Client):
                 async with session.post(
                     f"{API_URL}/chat",
                     json=payload,
-                    headers=INTERNAL_API_KEY
+                    headers={"x-api-key": INTERNAL_API_KEY}
                 ) as resp:
                     if resp.status != 200:
                         logger.error(f"API returned {resp.status}: {await resp.text()}")
