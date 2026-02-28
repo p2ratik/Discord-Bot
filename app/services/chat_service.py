@@ -66,7 +66,7 @@ async def build_prompt(payload: Payload, db: AsyncSession) -> str:
         role_admin_obj = await admin_service.get_role_for_admin(admin_username, db)
         prev_messages = await message_service.get_user_messages(payload.user_id, db)
         query_embed = await embed(payload.content)
-        wp_messages = await retrive_vectors(query_embed.embeddings[0], 5, db)
+        wp_messages = await retrive_vectors(query_embed.embeddings[0].values, 5, db)
 
 
         db_time = (time.time() - start_time) * 1000
