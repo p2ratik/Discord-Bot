@@ -34,10 +34,10 @@ async def retrive_vectors(query_embedding, top_k, db: AsyncSession):
     """Retrive Embeddings from pgvector"""
 
     try:
-        wp_messages = await db.execute(
+        result = await db.execute(
             select(ChatVector).order_by(ChatVector.embedding.cosine_distance(query_embedding))
             .limit(top_k)
-            )
-        return wp_messages.result.scalars().all()
+        )
+        return result.scalars().all()
     except Exception as e:
         raise 
