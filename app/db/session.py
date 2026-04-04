@@ -17,11 +17,16 @@ if db_url:
     elif db_url.startswith("postgresql://"):
         db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
+#new add: Heroku's DATABASE_URL may include sslmode=require, which asyncpg doesn't support. We remove it.
+if db_url and "sslmode" in db_url:
+    db_url = db_url.split("?")[0]        
+
 engine = create_async_engine(
     db_url,
     echo=False,
     pool_size=10,
-    max_overflow=20
+    max_overflow=20,
+    connect_args={"ssl": True} #newnew
 )
 
 AsyncSessionLocal = sessionmaker(
