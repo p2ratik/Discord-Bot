@@ -39,6 +39,14 @@ async def embed_pairs(parsed):
     Embed pairs with gemini-001 model with asyncio
     """
     logger.info(f"Started Embeddings Creation")
+
+    # Filter out pairs with empty/blank incoming text to avoid 400 INVALID_ARGUMENT from the API
+    parsed['pairs'] = [pair for pair in parsed['pairs'] if pair.get('incoming') and pair['incoming'].strip()]
+    
+    if not parsed['pairs']:
+        logger.warning("No valid pairs to embed after filtering empty messages")
+        return parsed
+
     batch_texts = []
     temp = []
     c = 0
