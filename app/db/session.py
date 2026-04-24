@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
@@ -21,12 +22,36 @@ if db_url:
 if db_url and "sslmode" in db_url:
     db_url = db_url.split("?")[0]        
 
+
+def _should_enable_ssl(url: str | None) -> bool:
+    """Enable SSL based on DB_SSL env or URL host heuristics."""
+    db_ssl = os.getenv("DB_SSL", "auto").strip().lower()
+
+    if db_ssl in {"1", "true", "yes", "on", "require"}:
+        return True
+    if db_ssl in {"0", "false", "no", "off", "disable"}:
+        return False
+
+    if not url:
+        return False
+
+    host = (urlparse(url).hostname or "").lower()
+    local_hosts = {"localhost", "127.0.0.1", "postgres", "db"}
+    return host not in local_hosts
+
+
+engine_kwargs = {
+    "echo": False,
+    "pool_size": 10,
+    "max_overflow": 20,
+}
+
+if _should_enable_ssl(db_url):
+    engine_kwargs["connect_args"] = {"ssl": True}
+
 engine = create_async_engine(
     db_url,
-    echo=False,
-    pool_size=10,
-    max_overflow=20,
-    connect_args={"ssl": True} #newnew
+    **engine_kwargs,
 )
 
 AsyncSessionLocal = sessionmaker(

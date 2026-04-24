@@ -21,12 +21,7 @@ CREATE TABLE IF NOT EXISTS role (
 -- Create index on role
 CREATE INDEX IF NOT EXISTS idx_role_user_id ON role (user_id);
 
--- Sample data for testing
--- INSERT INTO users (user_id, username) VALUES ('test_user_1', 'Test User 1');
--- INSERT INTO role (user_id, user_name, role) VALUES 
---   ('test_user_1', 'Test User 1', '{"relation": ["friend"], "nicknames": ["buddy"], "age": [25]}');
 
--- Admin Table Schema
 CREATE TABLE IF NOT EXISTS admin (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(255) UNIQUE NOT NULL,
@@ -52,12 +47,6 @@ CREATE TRIGGER trigger_update_users_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Vector chats
-CREATE INDEX chat_vectors_embedding_idx
-ON chat_vectors
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
-
 CREATE TABLE chat_vectors (
     id SERIAL PRIMARY KEY,
     user_id TEXT,
@@ -65,3 +54,9 @@ CREATE TABLE chat_vectors (
     reply TEXT,
     embedding vector(384)
 );
+
+-- Vector chats
+CREATE INDEX chat_vectors_embedding_idx
+ON chat_vectors
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);

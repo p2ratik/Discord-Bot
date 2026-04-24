@@ -1,0 +1,28 @@
+services:
+
+  backend:
+    build:
+      context: .
+      target: backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      API_URL: ${API_URL}
+      DB_SSL: "true"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      target: worker
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      DB_SSL: "true"
+    restart: unless-stopped
