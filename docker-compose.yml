@@ -1,9 +1,7 @@
 services:
 
   backend:
-    build:
-      context: .
-      target: backend
+    image: pratik007kyt/discord-bot:backend
     env_file:
       - .env
     environment:
@@ -16,9 +14,7 @@ services:
     restart: unless-stopped
 
   worker:
-    build:
-      context: .
-      target: worker
+    image: pratik007kyt/discord-bot:worker  
     env_file:
       - .env
     environment:

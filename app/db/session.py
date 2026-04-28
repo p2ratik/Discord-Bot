@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
@@ -18,9 +18,20 @@ if db_url:
     elif db_url.startswith("postgresql://"):
         db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-#new add: Heroku's DATABASE_URL may include sslmode=require, which asyncpg doesn't support. We remove it.
-if db_url and "sslmode" in db_url:
-    db_url = db_url.split("?")[0]        
+
+def _sanitize_db_url(url: str | None) -> tuple[str | None, str | None]:
+    """Remove unsupported asyncpg URL params while preserving other query args."""
+    if not url:
+        return None, None
+
+    parsed = urlparse(url)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    sslmode = query.pop("sslmode", None)
+    clean_url = urlunparse(parsed._replace(query=urlencode(query)))
+    return clean_url, sslmode
+
+
+db_url, url_sslmode = _sanitize_db_url(db_url)
 
 
 def _should_enable_ssl(url: str | None) -> bool:
@@ -44,10 +55,21 @@ engine_kwargs = {
     "echo": False,
     "pool_size": 10,
     "max_overflow": 20,
+    "pool_pre_ping": True,
+    "pool_recycle": 1800,
+    "pool_timeout": 30,
 }
 
-if _should_enable_ssl(db_url):
-    engine_kwargs["connect_args"] = {"ssl": True}
+connect_args = {
+    "timeout": float(os.getenv("DB_CONNECT_TIMEOUT", "30")),
+    "command_timeout": float(os.getenv("DB_COMMAND_TIMEOUT", "60")),
+}
+
+# asyncpg doesn't accept sslmode in URL; map it to ssl connect arg.
+if _should_enable_ssl(db_url) or (url_sslmode and url_sslmode.lower() in {"require", "verify-ca", "verify-full"}):
+    connect_args["ssl"] = True
+
+engine_kwargs["connect_args"] = connect_args
 
 engine = create_async_engine(
     db_url,

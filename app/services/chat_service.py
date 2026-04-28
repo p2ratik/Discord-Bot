@@ -103,7 +103,7 @@ async def call_llm(prompt: str, timeout: int = 30) -> str:
         # 1. Use client.aio for native async support
         response_stream = await asyncio.wait_for(
             client.aio.models.generate_content_stream(
-                model="gemini-2.5-flash",
+                model="gemini-2.5-pro",
                 contents=prompt,
             ),
             timeout=timeout
